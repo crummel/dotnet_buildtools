@@ -1,0 +1,45 @@
+﻿#!/bin/bash
+
+export PACKAGE_DIR=$1
+export EXECUTION_DIR=$2
+export BASEDIR=$(dirname "$0")
+
+echo ${PACKAGE_DIR?Error \$PACKAGE_DIR is not defined.  Please specify an package source directory using PACKAGEROOT parameter}
+echo Using $PACKAGE_DIR as folder for resolving package dependencies.
+
+if [ "$EXECUTION_DIR" = "" ]
+then
+export EXECUTION_DIR=$BASEDIR
+fi
+
+echo Executing in $EXECUTION_DIR
+
+# ========================= BEGIN Copying files  =============================== 
+if [[ ! -d $EXECUTION_DIR ]]
+then
+    mkdir $EXECUTION_DIR
+fi
+
+echo Hard linking dependent files... 
+# Format here is: cp -l $PACKAGE_DIR/<File Path> $/EXECUTION_DIR/<File Path> || exit $?
+[[CopyFilesCommands]]
+
+if [ "${EXECUTION_DIR,,}" != "${BASEDIR,,}" ]; then
+  echo "Copying files into execution dir."
+  cp -l -f -R $BASEDIR/* $EXECUTION_DIR
+else
+  echo "Executing in unpack directory, do not have to copy files"
+fi
+
+echo "Finished linking needed files, moving to running tests."
+# ========================= END Copying files  =================================
+
+# ========================= BEGIN Test Execution ============================= 
+echo Running tests... Start time: $(date +"%T")
+echo Command: [[TestRunCommand]]
+cd $EXECUTION_DIR
+[[TestRunCommand]]
+test_exitcode=$?
+echo Finished running tests.  End time=$(date +"%T").  Return value was $test_exitcode
+exit $test_exitcode
+# ========================= END Test Execution =================================
