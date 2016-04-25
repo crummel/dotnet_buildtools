@@ -1,6 +1,6 @@
 ﻿using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-
+using System;
 using System.IO;
 using System.Text;
 
@@ -30,7 +30,7 @@ namespace Microsoft.DotNet.Build.Tasks
             string executionScriptTemplate = File.ReadAllText(RunnerScriptTemplate);
             Directory.CreateDirectory(Path.GetDirectoryName(ScriptOutputPath));
 
-            Log.LogMessage("Test Command lines = {0}", string.Join("\n", TestCommands));
+            Log.LogMessage($"Test Command lines = {string.Join(Environment.NewLine, TestCommands)}");
             string extension = Path.GetExtension(Path.GetFileName(ScriptOutputPath)).ToLowerInvariant();
             switch (extension)
             {
@@ -65,12 +65,6 @@ namespace Microsoft.DotNet.Build.Tasks
             StringBuilder testRunCommands = new StringBuilder();
             foreach (string runCommand in TestCommands)
             {
-                // Debugging: Trying to figure out why this happpens currently but working around it.
-                if (runCommand.Contains("CoreRun.exe"))
-                {
-                    Log.LogMessage("For debug: Adding Run Command: {0}", runCommand);
-                }
-                
                 testRunCommands.Append(runCommand.Replace("CoreRun.exe", "./corerun"));
                 testRunCommands.Append("\n");
             }
