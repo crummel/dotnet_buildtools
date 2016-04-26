@@ -36,9 +36,10 @@ echo "Finished linking needed files, moving to running tests."
 
 # ========================= BEGIN Test Execution ============================= 
 echo Running tests... Start time: $(date +"%T")
-echo Command: [[TestRunCommand]]
+echo Commands:
+[[TestRunCommandsEcho]]
 cd $EXECUTION_DIR
-[[TestRunCommand]]
+[[TestRunCommands]]
 test_exitcode=$?
 echo Finished running tests.  End time=$(date +"%T").  Return value was $test_exitcode
 exit $test_exitcode

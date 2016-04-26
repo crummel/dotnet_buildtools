@@ -33,8 +33,9 @@
          that check the invoked process name against known casing which fail under code coverage.
          This is probably because the code coverage target invocation does not canonicalize the
          process name. -->
-    <TestHostExecutable Condition="'$(TargetOS)' == 'Windows_NT'">CoreRun.exe</TestHostExecutable>
-    <TestHostExecutable Condition="'$(TargetOS)' != 'Windows_NT'">./corerun</TestHostExecutable>
+    <TestHostExecutable Condition="'$(TestHostExecutable)'==''">corerun</TestHostExecutable>
+    <TestHostExecutable Condition="'$(TargetOS)'!='Windows_NT'">./$(TestHostExecutable)</TestHostExecutable>
+    
     <TestHostDirectory>$(TestPath)dnxcore50/</TestHostDirectory>
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>
     <DebugTestFrameworkFolder>dnxcore50</DebugTestFrameworkFolder>
@@ -83,9 +84,7 @@
     <TestProgram Condition="'$(TestHostExecutable)'==''">$(XunitExecutable)</TestProgram>
     <TestArguments Condition="'$(TestHostExecutable)'==''">$(XunitArguments)</TestArguments>
 
-    <BareTestCommandLine>$(TestProgram) $(TestArguments) {XunitTraitOptions}</BareTestCommandLine>
-    <TestCommandLine>$(TestHostDirectory)/$(BareTestCommandLine)</TestCommandLine>
-
+    <TestCommandLine>$(TestProgram) $(TestArguments) {XunitTraitOptions}</TestCommandLine>
   </PropertyGroup>
 
   <!-- The Code Coverage targets will override TestHost and TestCommandLine if coverage is enabled -->
@@ -134,11 +133,9 @@
     <PropertyGroup>
       <RunnerScriptName Condition="'$(TargetOS)'=='Windows_NT'" >RunTests.cmd</RunnerScriptName>
       <RunnerTemplateName Condition="'$(TargetOS)'=='Windows_NT'" >RunnerTemplate.Windows.txt</RunnerTemplateName>
-
       <RunnerScriptName Condition="'$(TargetOS)'!='Windows_NT'" >RunTests.sh</RunnerScriptName>
       <RunnerTemplateName Condition="'$(TargetOS)'!='Windows_NT'" >RunnerTemplate.Unix.txt</RunnerTemplateName>
     </PropertyGroup>
-
 
     <PropertyGroup>
       <XunitTraitOptions Condition="'@(RunWithTraits)'!=''">$(XunitTraitOptions) -trait category=@(RunWithTraits, ' -trait category=') </XunitTraitOptions>
@@ -150,23 +147,21 @@
          to one of its options).  Simply appending the traits would break code coverage. -->
     <PropertyGroup>
       <TestCommandLine>$(TestCommandLine.Replace('{XunitTraitOptions}', '$(XunitTraitOptions)'))</TestCommandLine>
-      <BareTestCommandLine>$(BareTestCommandLine.Replace('{XunitTraitOptions}', '$(XunitTraitOptions)'))</BareTestCommandLine>
-      <OutputFolderForScriptGenerator Condition="'$(TestDisabled)'=='true'">$(OutDir)</OutputFolderForScriptGenerator>
-      <OutputFolderForScriptGenerator Condition="'$(TestDisabled)'!='true'">$(TestPath)%(TestTargetFramework.Folder)</OutputFolderForScriptGenerator>
+      <OutputFolderForScriptGenerator>$(TestPath)%(TestTargetFramework.Folder)</OutputFolderForScriptGenerator>
       <OutputPathForScriptGenerator>$(OutputFolderForScriptGenerator)/$(RunnerScriptName)</OutputPathForScriptGenerator>
-
     </PropertyGroup>
 
     <MakeDir Condition="'$(CoverageEnabledForProject)'=='true'" Directories="$(CoverageReportDir)" />
 
-    <!-- This same data is generated in publishtest.targets with a different item name but will likely be removed once we stop using assemblylist.txt files.-->
     <ItemGroup>
-      <AssemblyPathsForRunnerScript Include="$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').Replace('$(PackagesDir)',''))" Condition="'%(_TestCopyLocalByFileNameWithoutDuplicates.NugetPackageId)' != ''" />
+      <IncludedFileForRunnerScript Include="@(_TestCopyLocalByFileNameWithoutDuplicates)" Condition="'%(_TestCopyLocalByFileNameWithoutDuplicates.NugetPackageId)' != ''">
+        <PackageRelativePath>$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').Replace('$(PackagesDir)',''))</PackageRelativePath>
+      </IncludedFileForRunnerScript>
     </ItemGroup>
 
     <GenerateTestExecutionScripts
-      TestCommands="$(BareTestCommandLine)"
-      TestDependencies="@(AssemblyPathsForRunnerScript)"
+      TestCommands="$(TestCommandLine)"
+      TestDependencies="@(IncludedFileForRunnerScript)"
       RunnerScriptTemplate="$(MSBuildThisFileDirectory)/$(RunnerTemplateName)"
       ScriptOutputPath ="$(OutputPathForScriptGenerator)"
     />

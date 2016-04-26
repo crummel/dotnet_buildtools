@@ -28,9 +28,10 @@ echo Finished linking needed files, moving to running tests.
 
 :: ========================= BEGIN Test Execution ============================= 
 echo Running tests... Start time: %TIME%
-echo Command: [[TestRunCommand]]
+echo Command(s):
+[[TestRunCommandsEcho]]
 pushd %EXECUTION_DIR%
-call [[TestRunCommand]]
+[[TestRunCommands]]
 echo Finished running tests.  End time=%TIME%, Exit code = %ERRORLEVEL%
 EXIT /B %ERRORLEVEL%
 :: ========================= END Test Execution =================================

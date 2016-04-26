@@ -12,7 +12,7 @@ namespace Microsoft.DotNet.Build.Tasks
         public string[] TestCommands { get; set; }
 
         [Required]
-        public string[] TestDependencies { get; set; }
+        public ITaskItem[] TestDependencies { get; set; }
 
         [Required]
         public string RunnerScriptTemplate { get; set; }
@@ -51,24 +51,27 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             // Build up the copy commands... 
             StringBuilder copyCommands = new StringBuilder();
-            foreach (string dependency in TestDependencies)
+            foreach (ITaskItem dependency in TestDependencies)
             {
-                string normalizedDependency = dependency.Replace('\\', '/');
+                string packageRelativePath = dependency.GetMetadata("PackageRelativePath");
+                string normalizedDependency = packageRelativePath.Replace('\\', '/');
                 if (normalizedDependency.StartsWith("/"))
                 {
                     normalizedDependency = normalizedDependency.Substring(1);
                 }
-                copyCommands.Append($"cp -l -f \"$PACKAGE_DIR/{normalizedDependency}\" \"$EXECUTION_DIR/{Path.GetFileName(dependency)}\" || exit $?\n");
+                copyCommands.Append($"cp -l -f \"$PACKAGE_DIR/{normalizedDependency}\" \"$EXECUTION_DIR/{Path.GetFileName(packageRelativePath)}\" || exit $?\n");
             }
             shExecutionTemplate = shExecutionTemplate.Replace("[[CopyFilesCommands]]", copyCommands.ToString());
 
+            StringBuilder testRunEchoes = new StringBuilder();
             StringBuilder testRunCommands = new StringBuilder();
             foreach (string runCommand in TestCommands)
             {
-                testRunCommands.Append(runCommand.Replace("CoreRun.exe", "./corerun"));
-                testRunCommands.Append("\n");
+                testRunCommands.Append($"{runCommand}\n");
+                testRunEchoes.Append($"echo {runCommand}\n");
             }
-            shExecutionTemplate = shExecutionTemplate.Replace("[[TestRunCommand]]", testRunCommands.ToString());
+            shExecutionTemplate = shExecutionTemplate.Replace("[[TestRunCommands]]", testRunCommands.ToString());
+            shExecutionTemplate = shExecutionTemplate.Replace("[[TestRunCommandsEcho]]", testRunEchoes.ToString());
             // Just in case any Windows EOLs have made it in by here, clean any up.
             shExecutionTemplate = shExecutionTemplate.Replace("\r\n", "\n");
 
@@ -85,20 +88,31 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             // Build up the copy commands... 
             StringBuilder copyCommands = new StringBuilder();
-            foreach (string dependency in TestDependencies)
+            foreach (ITaskItem dependency in TestDependencies)
             {
-                copyCommands.AppendLine($"call :copyandcheck \"%PACKAGE_DIR%\\{dependency}\" %EXECUTION_DIR%\\{Path.GetFileName(dependency)} || GOTO EOF");
+                string packageRelativePath = dependency.GetMetadata("PackageRelativePath");
+                copyCommands.AppendLine($"call :copyandcheck \"%PACKAGE_DIR%\\{packageRelativePath}\" %EXECUTION_DIR%\\{Path.GetFileName(packageRelativePath)} || GOTO EOF");
+            }
+            cmdExecutionTemplate = cmdExecutionTemplate.Replace("[[CopyFilesCommands]]", copyCommands.ToString());
+
+            // Same thing with execution commands
+            StringBuilder testRunEchoes = new StringBuilder();
+            StringBuilder testRunCommands = new StringBuilder();
+            foreach (string runCommand in TestCommands)
+            {
+                testRunCommands.AppendLine($"call {runCommand}");
+                testRunEchoes.AppendLine($"echo {runCommand}");
             }
 
-            cmdExecutionTemplate = cmdExecutionTemplate.Replace("[[CopyFilesCommands]]", copyCommands.ToString());
-            cmdExecutionTemplate = cmdExecutionTemplate.Replace("[[TestRunCommand]]", string.Join("\r\n", TestCommands));
+            cmdExecutionTemplate = cmdExecutionTemplate.Replace("[[TestRunCommands]]", testRunCommands.ToString());
+            cmdExecutionTemplate = cmdExecutionTemplate.Replace("[[TestRunCommandsEcho]]", testRunEchoes.ToString());
 
             using (StreamWriter sw = new StreamWriter(new FileStream(outputPath, FileMode.Create)))
             {
                 sw.Write(cmdExecutionTemplate);
                 sw.WriteLine();
             }
-            Log.LogMessage($"Wrote .cmd test execution script to {outputPath}");
+            Log.LogMessage($"Wrote Windows-compatible test execution script to {outputPath}");
         }
     }
 }
