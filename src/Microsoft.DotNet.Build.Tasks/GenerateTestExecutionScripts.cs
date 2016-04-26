@@ -53,13 +53,21 @@ namespace Microsoft.DotNet.Build.Tasks
             StringBuilder copyCommands = new StringBuilder();
             foreach (ITaskItem dependency in TestDependencies)
             {
-                string packageRelativePath = dependency.GetMetadata("PackageRelativePath");
-                string normalizedDependency = packageRelativePath.Replace('\\', '/');
-                if (normalizedDependency.StartsWith("/"))
+                string relativePath = dependency.GetMetadata("PackageRelativePath");
+                bool? useAbsolutePath = dependency.GetMetadata("UseAbsolutePath")?.ToLowerInvariant().Equals("true");
+                if (useAbsolutePath == true)
                 {
-                    normalizedDependency = normalizedDependency.Substring(1);
+                    copyCommands.Append($"cp -l -f \"{dependency.GetMetadata("SourcePath")}\" \"$EXECUTION_DIR/{Path.GetFileName(relativePath)}\" || exit $?\n");
                 }
-                copyCommands.Append($"cp -l -f \"$PACKAGE_DIR/{normalizedDependency}\" \"$EXECUTION_DIR/{Path.GetFileName(packageRelativePath)}\" || exit $?\n");
+                else
+                {
+                    string normalizedDependency = relativePath.Replace('\\', '/');
+                    if (normalizedDependency.StartsWith("/"))
+                    {
+                        normalizedDependency = normalizedDependency.Substring(1);
+                    }
+                    copyCommands.Append($"cp -l -f \"$PACKAGE_DIR/{normalizedDependency}\" \"$EXECUTION_DIR/{Path.GetFileName(relativePath)}\" || exit $?\n");
+                }
             }
             shExecutionTemplate = shExecutionTemplate.Replace("[[CopyFilesCommands]]", copyCommands.ToString());
 
@@ -90,8 +98,18 @@ namespace Microsoft.DotNet.Build.Tasks
             StringBuilder copyCommands = new StringBuilder();
             foreach (ITaskItem dependency in TestDependencies)
             {
-                string packageRelativePath = dependency.GetMetadata("PackageRelativePath");
-                copyCommands.AppendLine($"call :copyandcheck \"%PACKAGE_DIR%\\{packageRelativePath}\" %EXECUTION_DIR%\\{Path.GetFileName(packageRelativePath)} || GOTO EOF");
+                bool? useAbsolutePath = dependency.GetMetadata("UseAbsolutePath")?.ToLowerInvariant().Equals("true");
+                if (useAbsolutePath == true)
+                {
+                    string fullPath = dependency.GetMetadata("SourcePath");
+                    fullPath = fullPath.Replace('/', '\\');
+                    copyCommands.AppendLine($"call :copyandcheck \"{fullPath}\" \"%EXECUTION_DIR%/{Path.GetFileName(fullPath)}\" || exit /b -1");
+                }
+                else
+                {
+                    string relativePath = dependency.GetMetadata("PackageRelativePath");
+                    copyCommands.AppendLine($"call :copyandcheck \"%PACKAGE_DIR%\\{relativePath}\" \"%EXECUTION_DIR%\\{Path.GetFileName(relativePath)}\" ||  exit /b -1");
+                }
             }
             cmdExecutionTemplate = cmdExecutionTemplate.Replace("[[CopyFilesCommands]]", copyCommands.ToString());
 

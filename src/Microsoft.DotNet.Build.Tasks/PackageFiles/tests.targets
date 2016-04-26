@@ -33,9 +33,10 @@
          that check the invoked process name against known casing which fail under code coverage.
          This is probably because the code coverage target invocation does not canonicalize the
          process name. -->
-    <TestHostExecutable Condition="'$(TestHostExecutable)'==''">corerun</TestHostExecutable>
-    <TestHostExecutable Condition="'$(TargetOS)'!='Windows_NT'">./$(TestHostExecutable)</TestHostExecutable>
-    
+    <TargetOS Condition="'$(TargetOS)'==''">$(OS)</TargetOS>
+    <TestHostExecutable Condition="'$(TargetOS)'!='Windows_NT'">./corerun</TestHostExecutable>
+    <TestHostExecutable Condition="'$(TargetOS)'=='Windows_NT'">CoreRun.exe</TestHostExecutable>
+
     <TestHostDirectory>$(TestPath)dnxcore50/</TestHostDirectory>
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>
     <DebugTestFrameworkFolder>dnxcore50</DebugTestFrameworkFolder>
@@ -156,6 +157,7 @@
     <ItemGroup>
       <IncludedFileForRunnerScript Include="@(_TestCopyLocalByFileNameWithoutDuplicates)" Condition="'%(_TestCopyLocalByFileNameWithoutDuplicates.NugetPackageId)' != ''">
         <PackageRelativePath>$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').Replace('$(PackagesDir)',''))</PackageRelativePath>
+        <UseAbsolutePath Condition="'$(TestWithLocalLibraries)'=='true'">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').StartsWith('$(BinDir)'))</UseAbsolutePath>
       </IncludedFileForRunnerScript>
     </ItemGroup>
 
