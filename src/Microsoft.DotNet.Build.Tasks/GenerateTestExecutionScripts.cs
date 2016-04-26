@@ -57,7 +57,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 bool? useAbsolutePath = dependency.GetMetadata("UseAbsolutePath")?.ToLowerInvariant().Equals("true");
                 if (useAbsolutePath == true)
                 {
-                    copyCommands.Append($"cp -l -f \"{dependency.GetMetadata("SourcePath")}\" \"$EXECUTION_DIR/{Path.GetFileName(relativePath)}\" || exit $?\n");
+                    copyCommands.Append($"cp -l -n \"{dependency.GetMetadata("SourcePath")}\" \"$EXECUTION_DIR/{Path.GetFileName(relativePath)}\" || exit $?\n");
                 }
                 else
                 {
@@ -66,7 +66,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     {
                         normalizedDependency = normalizedDependency.Substring(1);
                     }
-                    copyCommands.Append($"cp -l -f \"$PACKAGE_DIR/{normalizedDependency}\" \"$EXECUTION_DIR/{Path.GetFileName(relativePath)}\" || exit $?\n");
+                    copyCommands.Append($"cp -l -n \"$PACKAGE_DIR/{normalizedDependency}\" \"$EXECUTION_DIR/{Path.GetFileName(relativePath)}\" || exit $?\n");
                 }
             }
             shExecutionTemplate = shExecutionTemplate.Replace("[[CopyFilesCommands]]", copyCommands.ToString());

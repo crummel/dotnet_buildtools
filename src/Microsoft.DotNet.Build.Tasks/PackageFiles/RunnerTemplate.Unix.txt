@@ -20,16 +20,16 @@ then
     mkdir $EXECUTION_DIR
 fi
 
-echo Hard linking dependent files... 
-# Format here is: cp -l $PACKAGE_DIR/<File Path> $/EXECUTION_DIR/<File Path> || exit $?
-[[CopyFilesCommands]]
-
 if [ "${EXECUTION_DIR,,}" != "${BASEDIR,,}" ]; then
   echo "Copying files into execution dir."
   cp -l -f -R $BASEDIR/* $EXECUTION_DIR
 else
   echo "Executing in unpack directory, do not have to copy files"
 fi
+
+echo Hard linking dependent files... 
+# Format here is: cp -l $PACKAGE_DIR/<File Path> $/EXECUTION_DIR/<File Path> || exit $?
+[[CopyFilesCommands]]
 
 echo "Finished linking needed files, moving to running tests."
 # ========================= END Copying files  =================================

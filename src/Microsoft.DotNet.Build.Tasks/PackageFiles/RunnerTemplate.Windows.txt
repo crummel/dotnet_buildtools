@@ -14,15 +14,16 @@ echo Executing in %EXECUTION_DIR%
 :: ========================= BEGIN Copying files  =============================== 
 IF NOT EXIST %EXECUTION_DIR% ( md %EXECUTION_DIR%)
 
-echo Hard linking dependent files... 
-:: Format here is: call :copyandcheck Path1 Path2 || GOTO EOF
-[[CopyFilesCommands]]
-
 :: Confusing slash on CD here is intentional:
 :: With the switch to ~dp0, one gets a \ and one does not.
 IF /I "%CD%\" NEQ "%EXECUTION_DIR%" (
 xcopy /e /q /y %CD%\*.* %EXECUTION_DIR%
 )
+
+echo Hard linking dependent files... 
+:: Format here is: call :copyandcheck Path1 Path2 || GOTO EOF
+[[CopyFilesCommands]]
+
 echo Finished linking needed files, moving to running tests.
 :: ========================= END Copying files  =================================
 
