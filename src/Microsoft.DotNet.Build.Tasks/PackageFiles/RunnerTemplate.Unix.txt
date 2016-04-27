@@ -1,10 +1,14 @@
-﻿#!/bin/bash
+﻿ #!/usr/bin/env bash
 
 export PACKAGE_DIR=$1
 export EXECUTION_DIR=$2
 export BASEDIR=$(dirname "$0")
 
-echo ${PACKAGE_DIR?Error \$PACKAGE_DIR is not defined.  Usage: $0 PackageRoot ExecutionDir}
+if [ "$PACKAGE_DIR" == "" ]
+then
+echo error: PACKAGE_DIR is not defined.  Usage: $0 PackageRoot ExecutionDir
+exit -1
+fi
 echo Using $PACKAGE_DIR as folder for resolving package dependencies.
 
 if [ "$EXECUTION_DIR" = "" ]
@@ -15,7 +19,7 @@ fi
 echo Executing in $EXECUTION_DIR
 
 # ========================= BEGIN Copying files  =============================== 
-if [[ ! -d $EXECUTION_DIR ]]
+if [ ! -d "$EXECUTION_DIR" ]
 then
     mkdir $EXECUTION_DIR
 fi
