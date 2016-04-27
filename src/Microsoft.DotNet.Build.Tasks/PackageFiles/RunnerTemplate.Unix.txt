@@ -1,4 +1,4 @@
-﻿ #!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 
 export PACKAGE_DIR=$1
 export EXECUTION_DIR=$2
