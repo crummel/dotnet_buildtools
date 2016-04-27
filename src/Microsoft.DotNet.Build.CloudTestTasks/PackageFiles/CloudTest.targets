@@ -22,6 +22,12 @@
     <HelixScriptRoot>$HELIX_SCRIPT_ROOT/</HelixScriptRoot>
     <FuncTestRunnerScript>$HELIX_CORRELATION_PAYLOAD/RunnerScripts/scriptrunner/scriptrunner.py</FuncTestRunnerScript>
   </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
+    <HelixPythonPath>%HELIX_PYTHONPATH%</HelixPythonPath>
+    <HelixScriptRoot>%HELIX_SCRIPT_ROOT%\</HelixScriptRoot>
+    <FuncTestRunnerScript>%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-appx\xunitrunner-appx.py</FuncTestRunnerScript>
+  </PropertyGroup>
 
   <PropertyGroup>
     <ContainerName Condition="'$(ContainerName)' == ''">$(TestProduct)-$(Branch)-$(BuildMoniker)-$(TargetOS)</ContainerName>
@@ -29,7 +35,7 @@
     <FuncTestListFilename>FuncTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</FuncTestListFilename>
     <PerfTestListFilename>PerfTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</PerfTestListFilename>
     <!-- Test builds consist of the tests that are platform specific in one root, plus others in AnyOS. -->
-    <AnyOSPlatformConfig>AnyOS.AnyCPU.$(ConfigurationGroup)</AnyOSPlatformConfig>    
+    <AnyOSPlatformConfig>AnyOS.$(Platform).$(ConfigurationGroup)</AnyOSPlatformConfig>    
     <AnyOsArchivesRoot>$(TestWorkingDir)$(AnyOSPlatformConfig)/archive/</AnyOsArchivesRoot>
     <AnyOSTestArchivesRoot>$(AnyOsArchivesRoot)tests/</AnyOSTestArchivesRoot>
     <!-- Additionally, *NIX variations may need to include their own root folders -->    
