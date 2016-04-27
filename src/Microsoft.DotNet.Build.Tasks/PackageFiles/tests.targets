@@ -33,9 +33,10 @@
          that check the invoked process name against known casing which fail under code coverage.
          This is probably because the code coverage target invocation does not canonicalize the
          process name. -->
-    <TargetOS Condition="'$(TargetOS)'==''">$(OS)</TargetOS>
-    <TestHostExecutable Condition="'$(TargetOS)'!='Windows_NT'">./corerun</TestHostExecutable>
-    <TestHostExecutable Condition="'$(TargetOS)'=='Windows_NT'">CoreRun.exe</TestHostExecutable>
+    <!-- Additionally, note that often at this point neither TargetOS nor OSEnvironment is  specified, so we must choose using OS for now.
+         In the future, we'll want to move these properties to a time when we've already calculated TargetOS -->
+    <TestHostExecutable Condition="'$(TargetOS)'!='Windows_NT' Or ('$(OS)'!='Windows_NT' And '$(TargetOS)' == '' )">./corerun</TestHostExecutable>
+    <TestHostExecutable Condition="'$(TargetOS)'=='Windows_NT' Or ('$(OS)'=='Windows_NT' And '$(TargetOS)' == '' )">CoreRun.exe</TestHostExecutable>
 
     <TestHostDirectory>$(TestPath)dnxcore50/</TestHostDirectory>
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>

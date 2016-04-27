@@ -4,7 +4,7 @@ export PACKAGE_DIR=$1
 export EXECUTION_DIR=$2
 export BASEDIR=$(dirname "$0")
 
-echo ${PACKAGE_DIR?Error \$PACKAGE_DIR is not defined.  Please specify an package source directory using PACKAGEROOT parameter}
+echo ${PACKAGE_DIR?Error \$PACKAGE_DIR is not defined.  Usage: $0 PackageRoot ExecutionDir}
 echo Using $PACKAGE_DIR as folder for resolving package dependencies.
 
 if [ "$EXECUTION_DIR" = "" ]

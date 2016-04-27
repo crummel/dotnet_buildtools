@@ -54,12 +54,14 @@ namespace Microsoft.DotNet.Build.Tasks
             foreach (ITaskItem dependency in TestDependencies)
             {
                 string relativePath = dependency.GetMetadata("PackageRelativePath");
-                bool? useAbsolutePath = dependency.GetMetadata("UseAbsolutePath")?.ToLowerInvariant().Equals("true");
+                bool? useAbsolutePath = dependency.GetMetadata("UseAbsolutePath")?.Equals("true", StringComparison.OrdinalIgnoreCase);
                 if (useAbsolutePath == true)
                 {
                     copyCommands.Append($"cp -l -n \"{dependency.GetMetadata("SourcePath")}\" \"$EXECUTION_DIR/{Path.GetFileName(relativePath)}\" || exit $?\n");
                 }
-                else
+                // Generally anything without the relative path is just the test DLL and its directly referenced dependencies.  
+                // Every test project comes with 4 of them, so not producing a warning here.
+                else if (!string.IsNullOrEmpty(relativePath))
                 {
                     string normalizedDependency = relativePath.Replace('\\', '/');
                     if (normalizedDependency.StartsWith("/"))
@@ -98,16 +100,18 @@ namespace Microsoft.DotNet.Build.Tasks
             StringBuilder copyCommands = new StringBuilder();
             foreach (ITaskItem dependency in TestDependencies)
             {
-                bool? useAbsolutePath = dependency.GetMetadata("UseAbsolutePath")?.ToLowerInvariant().Equals("true");
+                string relativePath = dependency.GetMetadata("PackageRelativePath");
+                bool? useAbsolutePath = dependency.GetMetadata("UseAbsolutePath")?.Equals("true", StringComparison.OrdinalIgnoreCase);
                 if (useAbsolutePath == true)
                 {
                     string fullPath = dependency.GetMetadata("SourcePath");
                     fullPath = fullPath.Replace('/', '\\');
                     copyCommands.AppendLine($"call :copyandcheck \"{fullPath}\" \"%EXECUTION_DIR%/{Path.GetFileName(fullPath)}\" || exit /b -1");
                 }
-                else
+                // Generally anything without the relative path is just the test DLL and its directly referenced dependencies.  
+                // Every test project comes with 4 of them, so not producing a warning here.
+                else if (!string.IsNullOrEmpty(relativePath))
                 {
-                    string relativePath = dependency.GetMetadata("PackageRelativePath");
                     copyCommands.AppendLine($"call :copyandcheck \"%PACKAGE_DIR%\\{relativePath}\" \"%EXECUTION_DIR%\\{Path.GetFileName(relativePath)}\" ||  exit /b -1");
                 }
             }
