@@ -13,11 +13,8 @@ echo Executing in %EXECUTION_DIR%
 
 :: ========================= BEGIN Copying files  =============================== 
 IF NOT EXIST %EXECUTION_DIR% ( md %EXECUTION_DIR%)
-
-:: Confusing slash on CD here is intentional:
-:: With the switch to ~dp0, one gets a \ and one does not.
-IF /I "%CD%\" NEQ "%EXECUTION_DIR%" (
-xcopy /e /q /y %CD%\*.* %EXECUTION_DIR%
+IF /I "%~dp0" NEQ "%EXECUTION_DIR%" (
+xcopy /e /q /y %~dp0*.* %EXECUTION_DIR%
 )
 
 echo Hard linking dependent files... 
