@@ -22,15 +22,10 @@
     <HelixScriptRoot>$HELIX_SCRIPT_ROOT/</HelixScriptRoot>
     <FuncTestRunnerScript>$HELIX_CORRELATION_PAYLOAD/RunnerScripts/scriptrunner/scriptrunner.py</FuncTestRunnerScript>
   </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
-    <HelixPythonPath>%HELIX_PYTHONPATH%</HelixPythonPath>
-    <HelixScriptRoot>%HELIX_SCRIPT_ROOT%\</HelixScriptRoot>
-    <FuncTestRunnerScript>%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-appx\xunitrunner-appx.py</FuncTestRunnerScript>
-  </PropertyGroup>
 
   <PropertyGroup>
     <ContainerName Condition="'$(ContainerName)' == ''">$(TestProduct)-$(Branch)-$(BuildMoniker)-$(TargetOS)</ContainerName>
+    <ContainerName>$(ContainerName.Replace('_', '-'))</ContainerName>
     <ContainerName>$(ContainerName.ToLower())</ContainerName>
     <FuncTestListFilename>FuncTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</FuncTestListFilename>
     <PerfTestListFilename>PerfTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</PerfTestListFilename>

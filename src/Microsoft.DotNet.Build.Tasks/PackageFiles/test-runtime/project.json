@@ -5,6 +5,7 @@
     "ReportGenerator": "2.4.3",
     "Microsoft.DotNet.xunit.performance.analysis": "1.0.0-alpha-build0029",
     "Microsoft.DotNet.xunit.performance.runner.Windows": "1.0.0-alpha-build0029",
+    "microsoft.xunit.runner.uwp": "1.0.2-prerelease-00319-0",
     "xunit": "2.1.0",
     "xunit.runner.utility": "2.1.0"
   },

@@ -33,8 +33,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="RunnerScripts\**\*.*" />
-    <None Include="UWPAppTools\**\*.*" />
-    <None Include="UWPRunner\**\*.*" />
     <None Include="PackageFiles\**\*.*" />
     <None Include="project.json" />
   </ItemGroup>

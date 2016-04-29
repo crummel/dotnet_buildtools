@@ -28,7 +28,7 @@
     <TestWithCore Condition="'$(TestWithCore)' == ''">true</TestWithCore>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TestWithCore)' == 'true'">
+  <PropertyGroup Condition="'$(TestWithCore)' == 'true' And '$(TestAppx)' != 'true'">
     <!-- Invoke with the correct casing of corerun per-OS.  There are some process tests
          that check the invoked process name against known casing which fail under code coverage.
          This is probably because the code coverage target invocation does not canonicalize the
@@ -42,6 +42,10 @@
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>
     <DebugTestFrameworkFolder>dnxcore50</DebugTestFrameworkFolder>
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(TestAppx)' == 'true'">
+    <XunitExecutable Condition="'$(XunitExecutable)' == ''">%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-appx\xunitrunner-appx.py</XunitExecutable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TestWithCore)' != 'true'">
@@ -85,6 +89,24 @@
 
     <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
     <XunitArguments>$(TargetFileName) $(XunitOptions)</XunitArguments>
+
+    <TestProgram Condition="'$(TestHostExecutable)'!=''">$(TestHostExecutable)</TestProgram>
+    <TestArguments Condition="'$(TestHostExecutable)'!=''">$(XunitExecutable) $(XunitArguments)</TestArguments>
+
+    <TestProgram Condition="'$(TestHostExecutable)'==''">$(XunitExecutable)</TestProgram>
+    <TestArguments Condition="'$(TestHostExecutable)'==''">$(XunitArguments)</TestArguments>
+
+    <TestCommandLine>$(TestProgram) $(TestArguments) {XunitTraitOptions}</TestCommandLine>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(TestAppx)' == 'true'">
+    <XunitResultsFileName>testResults.xml</XunitResultsFileName>
+    <XunitOptions>--</XunitOptions>
+
+    <XunitOptions Condition="'$(Performance)'!='true'">$(XunitOptions) -notrait Benchmark=true</XunitOptions>
+
+    <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
+    <XunitArguments>--dll $(TargetFileName) $(XunitOptions)</XunitArguments>
 
     <TestProgram Condition="'$(TestHostExecutable)'!=''">$(TestHostExecutable)</TestProgram>
     <TestArguments Condition="'$(TestHostExecutable)'!=''">$(XunitExecutable) $(XunitArguments)</TestArguments>
