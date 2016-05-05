@@ -164,6 +164,19 @@
   <Target Name="AddDependenciesToProjectJson"
           DependsOnTargets="GatherProjectReferenceForProjectJson;DetermineProjectJsonPath"
           Condition="'@(_InjectProjectReferenceDependency)' != ''">
+
+    <ItemGroup Condition="'$(TestAppX)'=='true'">
+        <ReplacementFramework Include="netcore50">
+            <Imports>uap10.0</Imports>
+            <Dependencies></Dependencies>
+            <TestRuntime>netcore50-test-runtime</TestRuntime>
+        </ReplacementFramework>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TestAppX)'=='true'">
+        <ReplacementRuntime Include="win10-x64"></ReplacementRuntime>
+        <ReplacementRuntime Include="win10-x86"></ReplacementRuntime>
+    </ItemGroup>
     
     <Message Condition="'$(PackageBuildNumberOverride)' != ''" Text="Setting package version to '$(PackageBuildNumberOverride)'" />
     <ParsePackageNames Condition="'@(_PackagesDrops)' != '' and '$(_DerivedPackageNumber)' == ''"
@@ -178,7 +191,8 @@
     <PropertyGroup>
         <PackageBuildNumberOverride Condition="'$(PackageBuildNumberOverride)' == '' and '$(_DerivedPackageNumber)' != ''">$(_DerivedPackageNumber)</PackageBuildNumberOverride>
     </PropertyGroup>
-    <AddDependenciesToProjectJson Condition="'$(ErrorNoVersion)' == ''"
+    
+    <AddDependenciesToProjectJson Condition="'$(ErrorNoVersion)' == '' AND '$(TestAppX)'!='true'"
                                   VersionStructureRegex="$(VersionStructureRegex)"
                                   AdditionalDependencies="@(_InjectProjectReferenceDependency)"
                                   ProjectJson="$(OriginalProjectJson)"
@@ -187,6 +201,21 @@
                                   OutputProjectJson="$(ProjectJson)" 
                                   PackageBuildNumberOverride="$(PackageBuildNumberOverride)"
                                   BuildNumberOverrideStructureRegex="$(BuildNumberOverrideStructureRegex)" />
+                                  
+    <AddDependenciesToProjectJson Condition="'$(ErrorNoVersion)' == '' AND '$(TestAppX)'=='true'"
+                                  VersionStructureRegex="$(VersionStructureRegex)"
+                                  AdditionalDependencies="@(_InjectProjectReferenceDependency)"
+                                  ProjectJson="$(OriginalProjectJson)"
+                                  IdentityRegex="$(BuildTestsAgainstPackagesIdentityRegex)"
+                                  Frameworks="$(GeneratedTargetGroup)"
+                                  OutputProjectJson="$(ProjectJson)" 
+                                  PackageBuildNumberOverride="$(PackageBuildNumberOverride)"
+                                  BuildNumberOverrideStructureRegex="$(BuildNumberOverrideStructureRegex)"
+                                  OverwriteFrameworkSection="true"
+                                  OverwrittenFrameworks="@(ReplacementFramework)"
+                                  OverwriteRuntimesSection="true"
+                                  OverwrittenRuntimes="@(ReplacementRuntime)"
+                                  />
 
     <Message Condition="'$(ErrorNoVersion)' == ''" Text="Generated project.json file - '$(ProjectJson)'" />
   </Target>
