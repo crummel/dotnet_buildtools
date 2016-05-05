@@ -113,8 +113,8 @@ def _run_xunit_from_execution(settings, test_dll, xunit_test_type, args):
     test_location = os.path.join(workitem_dir, 'UWPRunner')
     install_location = os.path.join(workitem_dir, 'Install')
 
-    shutil.rmtree(install_location)
-    results_location = os.path.join(install_location, 'test_results.xml')
+    shutil.rmtree(install_location, ignore_errors=True)
+    results_location = os.path.join(install_location, 'testResults.xml')
 
     event_client = helix.event.create_from_uri(settings.event_uri)
 
@@ -136,30 +136,8 @@ def _run_xunit_from_execution(settings, test_dll, xunit_test_type, args):
 
     # get test_results.xml
     if os.path.exists(results_location):
-        log.info("Uploading results from {}".format(results_location))
-
-        with file(results_location) as result_file:
-            test_count = 0
-            for line in result_file:
-                if '<assembly ' in line:
-                    total_expression = re.compile(r'total="(\d+)"')
-                    match = total_expression.search(line)
-                    if match is not None:
-                        test_count = int(match.groups()[0])
-                    break
-
-        result_url = _write_output_path(results_location, settings)
-        log.info("Sending completion event")
-        event_client.send(
-            {
-                'Type': 'XUnitTestResult',
-                'WorkItemId': settings.workitem_id,
-                'WorkItemFriendlyName': settings.workitem_friendly_name,
-                'CorrelationId': settings.correlation_id,
-                'ResultsXmlUri': result_url,
-                'TestCount': test_count,
-            }
-        )
+        resultsTarget = os.path.join(settings.workitem_working_dir, 'Execution/testResults.xml')
+        shutil.copy(results_location, resultsTarget)
     else:
         log.error("Error: No exception thrown, but XUnit results not created")
         _report_error(settings)

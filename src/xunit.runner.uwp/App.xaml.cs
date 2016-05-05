@@ -109,7 +109,7 @@ namespace XunitUwpRunner
 
         static async Task WriteResults(XElement data)
         {
-            string fname = "test_results.xml";
+            string fname = "testResults.xml";
             var folder = Windows.Storage.ApplicationData.Current.LocalFolder;
             var file = await folder.CreateFileAsync(fname, Windows.Storage.CreationCollisionOption.ReplaceExisting);
             using (var stream = await file.OpenStreamForWriteAsync())

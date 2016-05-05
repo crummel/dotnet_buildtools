@@ -132,7 +132,7 @@ namespace Xunit.UwpClient
             {
                 p.Kill();
             }
-            var resultPath = Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA"), "Packages", appUserModelId.Substring(0, appUserModelId.IndexOf('!')), "LocalState", "test_results.xml");
+            var resultPath = Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA"), "Packages", appUserModelId.Substring(0, appUserModelId.IndexOf('!')), "LocalState", "testResults.xml");
             var destinationPath = Path.Combine(InstallLocation, Path.GetFileName(resultPath));
             File.Copy(resultPath, destinationPath, true);
             Console.WriteLine("Copy results from {0} to {1}", resultPath, destinationPath);
