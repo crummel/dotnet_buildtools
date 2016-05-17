@@ -28,7 +28,7 @@
     <TestWithCore Condition="'$(TestWithCore)' == ''">true</TestWithCore>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TestWithCore)' == 'true'">
+  <PropertyGroup Condition="'$(TestWithCore)' == 'true' And '$(TestAppX)' != 'true'">
     <TestHostExecutable>CoreRun.exe</TestHostExecutable>
     <TestHostDirectory>$(TestPath)netcoreapp1.0/</TestHostDirectory>
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>
@@ -36,16 +36,20 @@
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TestWithCore)' != 'true'">
+  <PropertyGroup Condition="'$(TestWithCore)' != 'true' And '$(TestAppX)' != 'true'">
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.exe</XunitExecutable>
     <DebugTestFrameworkFolder>net45</DebugTestFrameworkFolder>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TestWithCore)' == 'true'">
+  <ItemGroup Condition="'$(TestWithCore)' == 'true' And '$(TestAppX)' != 'true'">
     <TestTargetFramework Include=".NETCoreApp,Version=v1.0">
       <Folder>netcoreapp1.0</Folder>
     </TestTargetFramework>
   </ItemGroup>
+
+  <PropertyGroup Condition="'$(TestAppX)' == 'true'">
+    <XunitExecutable Condition="'$(XunitExecutable)' == ''">%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-appx\xunitrunner-appx.py</XunitExecutable>
+  </PropertyGroup>
 
   <ItemGroup Condition="'$(TestWithCore)' != 'true'">
     <TestTargetFramework Include=".NETFramework,Version=v4.6.2" Condition="'$(TargetGroup)' == 'net462'">
@@ -63,7 +67,7 @@
   </ItemGroup>
 
   <!-- General xunit options -->
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(TestAppX)' != 'true'">
     <XunitResultsFileName>testResults.xml</XunitResultsFileName>
 
     <XunitOptions Condition="'$(TestWithCore)' != 'true'">$(XunitOptions) -noshadow </XunitOptions>
@@ -74,6 +78,24 @@
     <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
     <XunitTestAssembly Condition="'$(XunitTestAssembly)' == ''">$(TargetFileName)</XunitTestAssembly>
     <XunitArguments>$(XunitTestAssembly) $(XunitOptions)</XunitArguments>
+
+    <TestProgram Condition="'$(TestHostExecutable)'!=''">$(TestHostExecutable)</TestProgram>
+    <TestArguments Condition="'$(TestHostExecutable)'!=''">$(XunitExecutable) $(XunitArguments)</TestArguments>
+
+    <TestProgram Condition="'$(TestHostExecutable)'==''">$(XunitExecutable)</TestProgram>
+    <TestArguments Condition="'$(TestHostExecutable)'==''">$(XunitArguments)</TestArguments>
+
+    <TestCommandLine>$(TestProgram) $(TestArguments) {XunitTraitOptions}</TestCommandLine>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(TestAppX)' == 'true'">
+    <XunitResultsFileName>testResults.xml</XunitResultsFileName>
+    <XunitOptions>--</XunitOptions>
+
+    <XunitOptions Condition="'$(Performance)'!='true'">$(XunitOptions) -notrait Benchmark=true</XunitOptions>
+
+    <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
+    <XunitArguments>--dll $(TargetFileName) $(XunitOptions)</XunitArguments>
 
     <TestProgram Condition="'$(TestHostExecutable)'!=''">$(TestHostExecutable)</TestProgram>
     <TestArguments Condition="'$(TestHostExecutable)'!=''">$(XunitExecutable) $(XunitArguments)</TestArguments>
