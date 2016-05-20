@@ -34,7 +34,10 @@ namespace Xunit.UwpClient
 
                 var commandLine = CommandLine.Parse(args);
 
-                if (!commandLine.NoLogo) PrintHeader();
+                if (!commandLine.NoLogo)
+                {
+                    PrintHeader();
+                }
 
                 string installLocation = commandLine.InstallLocation == null ? Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()) : commandLine.InstallLocation;
 

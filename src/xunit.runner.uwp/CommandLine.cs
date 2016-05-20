@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using Windows.ApplicationModel;
+using Windows.Storage;
+
 
 namespace Xunit.ConsoleClient
 {
-    using System.Threading.Tasks;
-
-    using Windows.ApplicationModel;
-    using Windows.Storage;
-
     internal class CommandLine
     {
         readonly Stack<string> arguments = new Stack<string>();
@@ -104,7 +103,7 @@ namespace Xunit.ConsoleClient
 
                 if (IsConfigFile(assemblyFile))
                     throw new ArgumentException($"expecting assembly, got config file: {assemblyFile}");
-               
+
                 if (!fileExists(assemblyFile))
                     throw new ArgumentException($"file not found: {assemblyFile}");
 

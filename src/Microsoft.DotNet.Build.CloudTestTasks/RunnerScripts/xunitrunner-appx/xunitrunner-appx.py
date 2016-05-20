@@ -45,13 +45,13 @@ def _prepare_execution_environment(settings, assembly_list_name, test_dll):
     # location of uwp runner
     uwp_runner_correlation_dir = os.path.join(correlation_dir, "microsoft.xunit.runner.uwp")
     uwp_package_dir = os.path.join(uwp_runner_correlation_dir, [x for x in os.listdir(uwp_runner_correlation_dir)][0])
-    uwp_runner_working_dir = os.path.join(test_drop, "UWPRunner")
+    uwp_runner_working_dir = os.path.join(test_drop, "execution")
     ensure_directory_exists(uwp_runner_working_dir)
 
     assembly_list = os.path.join(test_drop, assembly_list_name)
 
     uwp_app_dir = os.path.join(uwp_runner_working_dir, "app")
-    uwp_dotnet_dir = os.path.join(uwp_package_dir, "lib", "uap10.0")
+    uwp_dotnet_dir = os.path.join(uwp_package_dir, "app")
     ensure_directory_exists(uwp_app_dir)
 
     log.info("Copying uwp binaries from {} to {}".format(uwp_package_dir, uwp_runner_working_dir))

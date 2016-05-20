@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,8 +14,6 @@ using Windows.Management.Deployment;
 
 namespace Xunit.UwpClient
 {
-    using System.Security.AccessControl;
-
     internal class HostedAppxTest
     {
         private string[] originalArgs;
@@ -45,7 +44,7 @@ namespace Xunit.UwpClient
                 securityRules.AddAccessRule(new FileSystemAccessRule("Users", FileSystemRights.FullControl, AccessControlType.Allow));
 
                 DirectoryInfo di = Directory.CreateDirectory(tempDir, securityRules);
-                Console.WriteLine("Creating directory:" +tempDir);
+                Console.WriteLine("Creating directory:" + tempDir);
             }
             object appxFactoryRet;
             NativeMethods.CoCreateInstance(Guids.AppxFactory, null, NativeMethods.CLSCTX_INPROC_SERVER, Guids.IAppxFactory, out appxFactoryRet);
@@ -82,12 +81,12 @@ namespace Xunit.UwpClient
             }
             else
             {
-                RecurseCopy(Path.Combine(Directory.GetCurrentDirectory(), "UWPRunner", "app"), Path.GetFullPath(tempDir));
+                RecurseCopy(Path.Combine(Directory.GetCurrentDirectory(), "app"), Path.GetFullPath(tempDir));
 
-                Console.WriteLine("Install Location: "+tempDir);
+                Console.WriteLine("Install Location: " + tempDir);
                 foreach (var a in project.Assemblies)
                 {
-                    Console.WriteLine("Assembly to be tested: "+a.AssemblyFilename);
+                    Console.WriteLine("Assembly to be tested: " + a.AssemblyFilename);
                     File.Copy(a.AssemblyFilename, Path.Combine(tempDir, Path.GetFileName(a.AssemblyFilename)), true);
                 }
                 manifestPath = Path.Combine(tempDir, "AppxManifest.xml");

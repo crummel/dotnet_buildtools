@@ -24,11 +24,14 @@ namespace XunitUwpRunner
     {
         volatile static bool cancel = false;
         
+        private string log;
         private async void RunTests(string arguments)
         {
             var reporters = new List<IRunnerReporter>();
             
             string[] args = arguments.Split(new[] { '\x1F' }, StringSplitOptions.RemoveEmptyEntries);
+            log = string.Empty;
+            log += "Args: " + args + "\n";
             var commandLine = CommandLine.Parse(reporters, args);
             if (commandLine.Debug)
             {
@@ -64,6 +67,7 @@ namespace XunitUwpRunner
                         var testCasesDiscovered = discoveryVisitor.TestCases.Count;
                         var filteredTestCases = discoveryVisitor.TestCases.Where(commandLine.Project.Filters.Filter).ToList();
                         var testCasesToRun = filteredTestCases.Count;
+                        log += "testCasesToRun: " + testCasesToRun + "\n";
 
                         reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryFinished(assembly, discoveryOptions, testCasesDiscovered, testCasesToRun));
 
@@ -90,6 +94,7 @@ namespace XunitUwpRunner
 
                             xunit.RunTests(filteredTestCases, resultsVisitor, executionOptions);
                             
+                            log += "finished running tests \n";
                             resultsVisitor.Finished.WaitOne();
 
                             reporterMessageHandler.OnMessage(new TestAssemblyExecutionFinished(assembly, executionOptions, resultsVisitor.ExecutionSummary));
@@ -101,9 +106,12 @@ namespace XunitUwpRunner
                 {
                     assembliesElement = new XElement("error");
                     assembliesElement.Add(e);
+
+                    log += "logged exec errors: " + e + "\n";
                 }
             }
             await WriteResults(assembliesElement);
+            await WriteLogs(log);
             Application.Current.Exit();
         }
 
@@ -115,6 +123,21 @@ namespace XunitUwpRunner
             using (var stream = await file.OpenStreamForWriteAsync())
             {
                 data.Save(stream);
+                stream.Flush();
+            }
+        }
+
+        static async Task WriteLogs(string data)
+        {
+            string fname = "logs.txt";
+            var folder = Windows.Storage.ApplicationData.Current.LocalFolder;
+            var file = await folder.CreateFileAsync(fname, Windows.Storage.CreationCollisionOption.ReplaceExisting);
+            using (var stream = await file.OpenStreamForWriteAsync())
+            {
+                using (StreamWriter sw = new StreamWriter(stream))
+                {
+                    await sw.WriteAsync(data);
+                }
                 stream.Flush();
             }
         }
