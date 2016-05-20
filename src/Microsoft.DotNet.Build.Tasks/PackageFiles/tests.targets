@@ -48,7 +48,7 @@
   </ItemGroup>
 
   <PropertyGroup Condition="'$(TestAppX)' == 'true'">
-    <XunitExecutable Condition="'$(XunitExecutable)' == ''">%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-appx\xunitrunner-appx.py</XunitExecutable>
+    <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.uwp.exe</XunitExecutable>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TestWithCore)' != 'true'">
@@ -67,7 +67,7 @@
   </ItemGroup>
 
   <!-- General xunit options -->
-  <PropertyGroup Condition="'$(TestAppX)' != 'true'">
+  <PropertyGroup>
     <XunitResultsFileName>testResults.xml</XunitResultsFileName>
 
     <XunitOptions Condition="'$(TestWithCore)' != 'true'">$(XunitOptions) -noshadow </XunitOptions>
@@ -89,7 +89,6 @@
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(TestAppX)' == 'true'">
-    <XunitResultsFileName>testResults.xml</XunitResultsFileName>
     <XunitOptions>--</XunitOptions>
 
     <XunitOptions Condition="'$(Performance)'!='true'">$(XunitOptions) -notrait Benchmark=true</XunitOptions>
