@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{BC6A3551-CC50-4EDC-B9BB-0C0230E7A51D}</ProjectGuid>
+    <ProjectGuid>{36219AA4-D36A-4CB4-9C7B-FB48641D411A}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Xunit.UwpClient</RootNamespace>

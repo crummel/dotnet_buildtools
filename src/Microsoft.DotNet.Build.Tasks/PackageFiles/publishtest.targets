@@ -55,32 +55,22 @@
                                TargetMonikers="@(TestTargetFramework)">
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="TestCopyLocal" />
     </PrereleaseResolveNuGetPackageAssets>
-	<Message Text="TestCopyLocal 1:" />
-	<Message Text="@(TestCopyLocal)" />
 
     <ItemGroup Condition="'$(TestWithCore)' != 'true'">
       <!-- Filter out the copy-local set of references coming from the targeting pack packages -->
       <TestCopyLocalToRemove Include="@(TestCopyLocal)"
         Condition="$([System.String]::new('%(TestCopyLocal.NuGetPackageId)').StartsWith('$(_TargetingPackPrefix)'))" />
-	<Message Text="TestCopyLocalToRemove 1:" />
-	<Message Text="@(TestCopyLocalToRemove)" />
       <TestCopyLocal Remove="@(TestCopyLocalToRemove)" />
-	<Message Text="TestCopyLocal 2:" />
-	<Message Text="@(TestCopyLocal)" />
 
       <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.1.0\tools\*.exe" />
       <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.1.0\tools\*.dll" />
-      <_TestCopyLocalXunitFiles Include="$(PackagesDir)microsoft.xunit.runner.uwp\**\*.*" />
-	<Message Text="_TestCopyLocalXunitFiles 1:" />
-	<Message Text="@(_TestCopyLocalXunitFiles)" />
+      <_TestCopyLocalXunitFiles Condition="'$(TestAppX)' == 'true'" Include="$(PackagesDir)microsoft.xunit.runner.uwp\**\*.*" />
 
       <TestCopyLocal Include="@(_TestCopyLocalXunitFiles)" >
         <NuGetPackageId>%(FileName)</NuGetPackageId>
         <NuGetPackageVersion>2.1.0</NuGetPackageVersion>
         <Private>false</Private>
       </TestCopyLocal>
-	<Message Text="TestCopyLocal 3:" />
-	<Message Text="@(TestCopyLocal)" />
     </ItemGroup>
 
     <!-- We may have an indirect package reference that we want to replace with a project reference.

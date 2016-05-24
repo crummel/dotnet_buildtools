@@ -109,14 +109,13 @@ namespace Xunit.UwpClient
 
                 optionName = optionName.Substring(1);
 
-                
                 if (optionName == "installlocation")
                 {
                     if (option.Value == null)
                         throw new ArgumentException("missing argument for -installlocation");
                     InstallLocation = option.Value;
                 }
-                if (optionName == "nologo")
+                else if (optionName == "nologo")
                 {
                     GuardNoOptionValue(option);
                     NoLogo = true;
