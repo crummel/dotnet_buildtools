@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Linq;
 using Windows.Management.Deployment;
 
 namespace Xunit.UwpClient
@@ -53,6 +54,7 @@ namespace Xunit.UwpClient
             var appx = project.Assemblies.SingleOrDefault(a => a.AssemblyFilename.ToLowerInvariant().EndsWith("appx"));
             if (appx != null)
             {
+                Console.WriteLine("AppX mode");
                 IStream inputStream = null;
                 NativeMethods.SHCreateStreamOnFileEx(appx.AssemblyFilename, STGM_CONSTANTS.STGM_READ | STGM_CONSTANTS.STGM_SHARE_EXCLUSIVE, 0, false, null, ref inputStream);
                 IAppxPackageReader packageReader;
@@ -77,17 +79,18 @@ namespace Xunit.UwpClient
                 }
                 argsToPass = string.Join("\x1F", originalArgs.Where(s => !s.ToLowerInvariant().EndsWith(".appx")).Concat(payloadFiles).ToArray());
                 CopyXunitDlls(this.runnerAppxPath, this.tempDir);
-                SetupManifestForXunit(manifestPath);
             }
             else
             {
+                Console.WriteLine("DLL mode");
                 if (File.Exists("XunitUwpRunner.exe"))
                 {
                     tempDir = Directory.GetCurrentDirectory();
+                    Console.WriteLine("Runner EXE exists, using this directory: " + tempDir);
                 }
                 else
                 {
-
+                    Console.WriteLine("Using temp dir: " + tempDir);
                     RecurseCopy(Path.Combine(Directory.GetCurrentDirectory(), "app"), Path.GetFullPath(tempDir));
 
                     Console.WriteLine("Install Location: " + tempDir);
@@ -97,11 +100,13 @@ namespace Xunit.UwpClient
                         File.Copy(a.AssemblyFilename, Path.Combine(tempDir, Path.GetFileName(a.AssemblyFilename)), true);
                     }
                 }
-                manifestPath = Path.Combine(tempDir, "AppxManifest.xml");
-                GetManifestInfoFromFile(appxFactory, manifestPath);
                 argsToPass = string.Join("\x1F", originalArgs);
                 Console.WriteLine("Arguments passed: " + argsToPass);
             }
+            manifestPath = Path.Combine(tempDir, "AppxManifest.xml");
+            Console.WriteLine("Using manifest path: " + manifestPath);
+            SetupManifestForXunit(manifestPath);
+            GetManifestInfoFromFile(appxFactory, manifestPath);
             Console.WriteLine("Registering: " + manifestPath);
             RegisterAppx(new Uri(manifestPath));
         }
@@ -133,18 +138,36 @@ namespace Xunit.UwpClient
             IntPtr pid;
             Console.WriteLine("Activating: " + appUserModelId);
             var hri = activationManager.ActivateApplication(appUserModelId, this.argsToPass, ACTIVATEOPTIONS.AO_NOERRORUI | ACTIVATEOPTIONS.AO_NOSPLASHSCREEN, out pid);
-            Console.WriteLine("UWP Install HRESULT: "+hri);
+            Console.WriteLine("UWP Install HRESULT: " + hri);
             var p = Process.GetProcessById((int)pid);
-            Console.WriteLine("Running {0} in process {1}", p.ProcessName, pid);
+            Console.WriteLine("Running {0} in process {1} at {2}", p.ProcessName, pid, DateTimeOffset.Now);
             p.WaitForExit((int)timeout.TotalMilliseconds);
+            var exitCode = "?";
+            if (p.HasExited)
+            {
+                exitCode = "H";
+                try
+                {
+                    exitCode = p.ExitCode.ToString();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
+            Console.WriteLine("Finished waiting for {0} at {1}, exit code {2}", pid, DateTimeOffset.Now, exitCode);
             if (!p.HasExited)
             {
+                Console.WriteLine("Killing {0}", pid);
                 p.Kill();
             }
+
             var resultPath = Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA"), "Packages", appUserModelId.Substring(0, appUserModelId.IndexOf('!')), "LocalState", "testResults.xml");
+            Console.WriteLine("Attempting to read {0}", resultPath);
             var destinationPath = Path.Combine(InstallLocation, Path.GetFileName(resultPath));
+            Console.WriteLine("Attempting to copy {0} to {1}", resultPath, destinationPath);
             File.Copy(resultPath, destinationPath, true);
-            Console.WriteLine("Copy results from {0} to {1}", resultPath, destinationPath);
+            Console.WriteLine("File copied to {0}", destinationPath);
             File.Delete(resultPath);
         }
 
@@ -159,10 +182,30 @@ namespace Xunit.UwpClient
 
         private void SetupManifestForXunit(string manifestPath)
         {
+            Console.WriteLine("Updating manifest for testing: " + manifestPath);
             var manifest = new XmlDocument();
             manifest.Load(manifestPath);
             manifest["Package"]["Applications"]["Application"].Attributes["Executable"].Value = "XunitUwpRunner.exe";
             manifest["Package"]["Applications"]["Application"].Attributes["EntryPoint"].Value = "XunitUwpRunner.App";
+            var depToRemove = manifest["Package"]["Dependencies"].SelectSingleNode("PackageDependency[@Name='Microsoft.NET.CoreRuntime.1.0']");
+            foreach (XmlNode x in manifest["Package"]["Dependencies"])
+            {
+                Console.WriteLine("Dependency found: {0} -- {1}", x.Attributes["Name"].Value, x.OuterXml);
+                if (depToRemove == null && x.Attributes["Name"].Value == "Microsoft.NET.CoreRuntime.1.0")
+                {
+                    depToRemove = x;
+                }
+            }
+            if (depToRemove != null)
+            {
+                Console.WriteLine("Removing: " + depToRemove.OuterXml);
+                manifest["Package"]["Dependencies"].RemoveChild(depToRemove);
+            }
+            else
+            {
+                Console.WriteLine("No CoreRuntime dependency to remove.");
+            }
+            Console.WriteLine("Saving manifest: " + manifestPath);
             manifest.Save(manifestPath);
         }
 
@@ -186,6 +229,7 @@ namespace Xunit.UwpClient
             ThrowIfFailed(hr);
             hr = packageId.GetPackageFullName(out packageFullName);
             ThrowIfFailed(hr);
+            Console.WriteLine("Read package full name: " + packageFullName);
             IAppxManifestApplicationsEnumerator appEnumerator;
             hr = manifestReader.GetApplications(out appEnumerator);
             ThrowIfFailed(hr);
@@ -198,6 +242,7 @@ namespace Xunit.UwpClient
                 hr = appEnumerator.GetCurrent(out app);
                 ThrowIfFailed(hr);
                 app.GetAppUserModelId(out appUserModelId);
+                Console.WriteLine("Read app user model ID: " + appUserModelId);
             }
         }
 
@@ -212,6 +257,7 @@ namespace Xunit.UwpClient
 
         private void GetManifestInfoFromFile(IAppxFactory appxFactory, string manifestPath)
         {
+            Console.WriteLine("Reading manifest info from: " + manifestPath);
             using (var stream = new StreamWrapper(File.OpenRead(manifestPath)))
             {
                 IAppxManifestReader manifestReader;
