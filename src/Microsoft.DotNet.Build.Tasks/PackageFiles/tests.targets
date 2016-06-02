@@ -87,21 +87,6 @@
 
     <TestCommandLine>$(TestProgram) $(TestArguments) {XunitTraitOptions}</TestCommandLine>
   </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(TestAppX)' == 'true'">
-    <XunitOptions>--</XunitOptions>
-
-    <XunitOptions Condition="'$(Performance)'!='true'">$(XunitOptions) -notrait Benchmark=true</XunitOptions>
-
-    <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
-    <XunitTestAssembly Condition="'$(XunitTestAssembly)' == ''">$(TargetFileName)</XunitTestAssembly>
-    <XunitArguments>$(XunitTestAssembly) $(XunitOptions)</XunitArguments>
-
-    <TestProgram Condition="'$(TestHostExecutable)'==''">$(XunitExecutable)</TestProgram>
-    <TestArguments Condition="'$(TestHostExecutable)'==''">$(XunitArguments)</TestArguments>
-
-    <TestCommandLine>$(TestProgram) $(TestArguments) {XunitTraitOptions}</TestCommandLine>
-  </PropertyGroup>
 
   <!-- The Code Coverage targets will override TestHost and TestCommandLine if coverage is enabled -->
   <Import Project="$(MSBuildThisFileDirectory)CodeCoverage.targets" />

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,7 @@ namespace Xunit.UwpClient
         private string appUserModelId = null;
 
         private string InstallLocation = null;
+        private string PackageSourceDirectory = null;
 
         public HostedAppxTest(string[] args, XunitProject project, string runnerAppxPath, string installPath)
         {
@@ -34,8 +36,9 @@ namespace Xunit.UwpClient
             this.project = project;
             this.runnerAppxPath = runnerAppxPath;
             this.InstallLocation = installPath;
+            this.PackageSourceDirectory = Environment.GetEnvironmentVariable("HELIX_CORRELATION_PAYLOAD");
         }
-
+        
         public void Setup()
         {
             tempDir = InstallLocation;
@@ -86,7 +89,22 @@ namespace Xunit.UwpClient
                 if (File.Exists("XunitUwpRunner.exe"))
                 {
                     tempDir = Directory.GetCurrentDirectory();
+                    InstallLocation = tempDir;
                     Console.WriteLine("Runner EXE exists, using this directory: " + tempDir);
+                    if (PackageSourceDirectory != null)
+                    {
+                        Console.WriteLine("Looking for *.dll in {0}", PackageSourceDirectory);
+                        foreach (var f in Directory.EnumerateFiles(PackageSourceDirectory, "*.dll", SearchOption.AllDirectories))
+                        {
+                            var src = Path.Combine(PackageSourceDirectory, f);
+                            var dest = Path.Combine(tempDir, Path.GetFileName(f));
+                            if (!File.Exists(dest))
+                            {
+                                Console.WriteLine("Copying {0} to {1}", src, dest);
+                                File.Copy(src, dest);
+                            }
+                        }
+                    }
                 }
                 else
                 {

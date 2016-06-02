@@ -290,26 +290,12 @@ namespace Xunit.ConsoleClient
 
                     project.Filters.IncludedNameSpaces.Add(option.Value);
                 }
-                else
+                else if (optionName == "xml")
                 {
-                    // Might be a reporter...
-                    var reporter = reporters.FirstOrDefault(r => string.Equals(r.RunnerSwitch, optionName, StringComparison.OrdinalIgnoreCase));
-                    if (reporter != null)
-                    {
-                        GuardNoOptionValue(option);
-                        if (Reporter != null)
-                            throw new ArgumentException("only one reporter is allowed");
+                    if (option.Value == null)
+                        throw new ArgumentException($"missing filename for {option.Key}");
 
-                        Reporter = reporter;
-                    }
-                    // ...or an result output file
-                    else
-                    {
-                        if (option.Value == null)
-                            throw new ArgumentException($"missing filename for {option.Key}");
-
-                        project.Output.Add(optionName, option.Value);
-                    }
+                    project.Output.Add(optionName, option.Value);
                 }
             }
 
