@@ -24,6 +24,9 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\common\AppxCommandLine.cs">
+      <Link>Common\AppxCommandLine.cs</Link>
+    </Compile>
     <Compile Include="..\Common\DictionaryExtensions.cs">
       <Link>Common\DictionaryExtensions.cs</Link>
     </Compile>
@@ -39,7 +42,6 @@
     <Compile Include="..\Common\IExecutionVisitor.cs">
       <Link>Common\IExecutionVisitor.cs</Link>
     </Compile>
-    <Compile Include="CommandLine.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>

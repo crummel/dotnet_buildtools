@@ -52,6 +52,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\common\AppxCommandLine.cs">
+      <Link>Common\AppxCommandLine.cs</Link>
+    </Compile>
     <Compile Include="..\common\DictionaryExtensions.cs">
       <Link>Common\DictionaryExtensions.cs</Link>
     </Compile>
@@ -61,7 +64,6 @@
     <Compile Include="..\common\ParallelismOption.cs">
       <Link>Common\ParallelismOption.cs</Link>
     </Compile>
-    <Compile Include="CommandLine.cs" />
     <Compile Include="HostedAppxTest.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="Program.cs" />
