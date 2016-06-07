@@ -5,19 +5,17 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.Storage;
+using Xunit.Abstractions;
+using Xunit.ConsoleClient;
 
-
-namespace Xunit.ConsoleClient
+namespace Xunit.Shared
 {
     internal class CommandLine
     {
         readonly Stack<string> arguments = new Stack<string>();
-        readonly IReadOnlyList<IRunnerReporter> reporters;
 
-        protected CommandLine(IReadOnlyList<IRunnerReporter> reporters, string[] args, Predicate<string> fileExists = null)
+        protected CommandLine(string[] args, Predicate<string> fileExists = null)
         {
-            this.reporters = reporters;
-
             if (fileExists == null)
                 fileExists = File.Exists;
 
@@ -25,7 +23,6 @@ namespace Xunit.ConsoleClient
                 arguments.Push(args[i]);
 
             Project = Parse(fileExists);
-            Reporter = reporters.FirstOrDefault(r => r.IsEnvironmentallyEnabled) ?? Reporter ?? new DefaultRunnerReporter();
         }
 
         public bool Debug { get; protected set; }
@@ -53,6 +50,7 @@ namespace Xunit.ConsoleClient
         public bool Serialize { get; protected set; }
 
         public bool Wait { get; protected set; }
+        public string InstallLocation { get; internal set; }
 
         protected virtual string GetFullPath(string fileName)
         {
@@ -85,9 +83,9 @@ namespace Xunit.ConsoleClient
                 || fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase);
         }
 
-        public static CommandLine Parse(IReadOnlyList<IRunnerReporter> reporters, params string[] args)
+        public static CommandLine Parse(params string[] args)
         {
-            return new CommandLine(reporters, args);
+            return new CommandLine(args);
         }
 
         protected XunitProject Parse(Predicate<string> fileExists)
@@ -100,7 +98,6 @@ namespace Xunit.ConsoleClient
                     break;
 
                 var assemblyFile = arguments.Pop();
-
                 if (IsConfigFile(assemblyFile))
                     throw new ArgumentException($"expecting assembly, got config file: {assemblyFile}");
 
@@ -139,7 +136,9 @@ namespace Xunit.ConsoleClient
 
                 if (optionName == "installlocation")
                 {
-                    continue;
+                    if (option.Value == null)
+                        throw new ArgumentException("missing argument for -installlocation");
+                    InstallLocation = option.Value;
                 }
                 else if (optionName == "nologo")
                 {
@@ -291,11 +290,11 @@ namespace Xunit.ConsoleClient
                     project.Filters.IncludedNameSpaces.Add(option.Value);
                 }
                 else if (optionName == "xml")
-                {
-                    if (option.Value == null)
-                        throw new ArgumentException($"missing filename for {option.Key}");
+                    {
+                        if (option.Value == null)
+                            throw new ArgumentException($"missing filename for {option.Key}");
 
-                    project.Output.Add(optionName, option.Value);
+                        project.Output.Add(optionName, option.Value);
                 }
             }
 

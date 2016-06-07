@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Security.AccessControl;
-using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +37,7 @@ namespace Xunit.UwpClient
             this.InstallLocation = installPath;
             this.PackageSourceDirectory = Environment.GetEnvironmentVariable("HELIX_CORRELATION_PAYLOAD");
         }
-        
+
         public void Setup()
         {
             tempDir = InstallLocation;

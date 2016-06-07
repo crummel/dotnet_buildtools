@@ -14,6 +14,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 using Xunit;
 using Xunit.ConsoleClient;
+using Xunit.Shared;
 
 namespace XunitUwpRunner
 {
@@ -32,7 +33,7 @@ namespace XunitUwpRunner
             string[] args = arguments.Split(new[] { '\x1F' }, StringSplitOptions.RemoveEmptyEntries);
             log = string.Empty;
             log += "Args: " + args + "\n";
-            var commandLine = CommandLine.Parse(reporters, args);
+            var commandLine = CommandLine.Parse(args);
             if (commandLine.Debug)
             {
                 Debugger.Launch();

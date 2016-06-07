@@ -58,6 +58,9 @@
     <Compile Include="..\common\Guard.cs">
       <Link>Common\Guard.cs</Link>
     </Compile>
+    <Compile Include="..\common\ParallelismOption.cs">
+      <Link>Common\ParallelismOption.cs</Link>
+    </Compile>
     <Compile Include="CommandLine.cs" />
     <Compile Include="HostedAppxTest.cs" />
     <Compile Include="NativeMethods.cs" />

@@ -13,6 +13,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Windows.Management.Deployment;
 using Xunit.Abstractions;
+using Xunit.Shared;
 
 namespace Xunit.UwpClient
 {
