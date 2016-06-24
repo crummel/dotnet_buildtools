@@ -212,8 +212,8 @@
     <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true'" >
       <TestCommandLines Include="copy /y $(TestILCFolder)\default.rd.xml  %EXECUTION_DIR%" />
       <TestCommandLines Include="$(TestILCFolder)\ilc.exe -usecustomframework -ExeName xunit.console.netcore.exe -in %EXECUTION_DIR% -out %EXECUTION_DIR%\native -usedefaultpinvoke -buildtype ret -v diag || exit /b %ERRORLEVEL%"/>
-      <TestCommandLines Include="copy /y $(TestILCFolder)\ProductIlc\lib\MSCRT\vcruntime140_app.dll %EXECUTION_DIR%native" />
-      <TestCommandLines Include="echo > %EXECUTION_DIR%native\$(XunitTestAssembly)"/>
+      <TestCommandLines Include="copy /y $(TestILCFolder)\ProductIlc\lib\MSCRT\vcruntime140_app.dll %EXECUTION_DIR%\native" />
+      <TestCommandLines Include="echo > %EXECUTION_DIR%\native\$(XunitTestAssembly)"/>
       <TestCommandLines Include="cd native"/>
     </ItemGroup>
 
