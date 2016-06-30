@@ -33,7 +33,7 @@
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(UseDotNetNativeToolchain)' == 'true' And '$(TestAppX)' != 'true'">
+  <PropertyGroup Condition="'$(UseDotNetNativeToolchain)' == 'true'">
     <TestILCFolder>%PACKAGE_DIR%\TestILC\1.0.0</TestILCFolder>
     <TestHostExecutable></TestHostExecutable>
     <XunitExecutable>xunit.console.netcore.exe</XunitExecutable>
@@ -45,6 +45,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TestAppX)' == 'true'">
+    <TestHostExecutable></TestHostExecutable>
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.uwp.exe</XunitExecutable>
   </PropertyGroup>
 
@@ -85,7 +86,8 @@
 
   <!-- General xunit options -->
   <PropertyGroup>
-    <XunitResultsFileName>testResults.xml</XunitResultsFileName>
+    <XunitResultsFileName Condition="'$(UseDotNetNativeToolchain)' != 'true'">testResults.xml</XunitResultsFileName>
+    <XunitResultsFileName Condition="'$(UseDotNetNativeToolchain)' == 'true'">..\testResults.xml</XunitResultsFileName>
 
     <XunitOptions Condition="'$(TestWithCore)' != 'true'">$(XunitOptions) -noshadow </XunitOptions>
     <XunitOptions>$(XunitOptions) -xml $(XunitResultsFileName)</XunitOptions>
