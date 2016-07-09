@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using Windows.Foundation;
 using Windows.Management.Deployment;
 
 namespace Xunit.UwpClient
@@ -25,17 +26,17 @@ namespace Xunit.UwpClient
         private string packageFullName = null;
         private string manifestPath = null;
         private string appUserModelId = null;
-
         private string InstallLocation = null;
-
+        private bool NativeMode;
         private int ReturnCode = 0;
 
-        public HostedAppxTest(string[] args, XunitProject project, string runnerAppxPath, string installPath)
+        public HostedAppxTest(string[] args, XunitProject project, string runnerAppxPath, string installPath, bool nativeMode)
         {
             this.originalArgs = args;
             this.project = project;
             this.runnerAppxPath = runnerAppxPath;
             this.InstallLocation = installPath;
+            this.NativeMode = nativeMode;
             NativeMethods.CoInitializeEx(IntPtr.Zero, 2);
         }
 
@@ -55,7 +56,13 @@ namespace Xunit.UwpClient
             var appxFactory = (IAppxFactory)appxFactoryRet;
             uint hr;
             var appx = project.Assemblies.SingleOrDefault(a => a.AssemblyFilename.ToLowerInvariant().EndsWith("appx"));
-            if (appx != null)
+            if (NativeMode)
+            {
+                // tempDir = InstallLocation set by command line
+                argsToPass = string.Join("\x1F", originalArgs);
+                Console.WriteLine("Arguments passed: " + argsToPass);
+            }
+            else if (appx != null)
             {
                 Console.WriteLine("AppX mode");
                 IStream inputStream = null;
@@ -105,13 +112,13 @@ namespace Xunit.UwpClient
             SetupManifestForXunit(manifestPath);
             GetManifestInfoFromFile(appxFactory, manifestPath);
             Console.WriteLine("Registering: " + manifestPath);
-            RegisterAppx(new Uri(manifestPath));
+            RegisterAppx(new Uri(Path.GetFullPath(manifestPath)));
         }
 
         private static void RegisterAppx(Uri manifestUri)
         {
             var packageManager = new PackageManager();
-            var result = packageManager.RegisterPackageAsync(manifestUri, null, DeploymentOptions.DevelopmentMode);
+            var result = packageManager.RegisterPackageAsync(manifestUri, null, DeploymentOptions.ForceApplicationShutdown);
             var completed = new AutoResetEvent(false);
             result.Completed = (waitResult, status) => completed.Set();
             completed.WaitOne();
@@ -134,27 +141,28 @@ namespace Xunit.UwpClient
             }
             IntPtr pid;
             Console.WriteLine("Activating: " + appUserModelId);
-            var hri = activationManager.ActivateApplication(appUserModelId, this.argsToPass, ACTIVATEOPTIONS.AO_NOERRORUI | ACTIVATEOPTIONS.AO_NOSPLASHSCREEN, out pid);
+            var hr = activationManager.ActivateApplication(appUserModelId, this.argsToPass, ACTIVATEOPTIONS.AO_NOERRORUI | ACTIVATEOPTIONS.AO_NOSPLASHSCREEN, out pid);
             var timer = Stopwatch.StartNew();
-            Console.WriteLine("UWP Install HRESULT: " + hri);
-            var p = Process.GetProcessById(pid.ToInt32());
-            Console.WriteLine("Running {0} in process {1} at {2}", p.ProcessName, pid, DateTimeOffset.Now);
-            while (timer.ElapsedMilliseconds < timeout.TotalMilliseconds && !p.HasExited)
+            Console.WriteLine("UWP Activation HRESULT: " + hr);
+            if (hr == 0)
             {
-                Thread.Sleep(1000);
+                var p = Process.GetProcessById(pid.ToInt32());
+                Console.WriteLine("Running {0} in process {1} at {2}", p.ProcessName, pid, DateTimeOffset.Now);
+                while (timer.ElapsedMilliseconds < timeout.TotalMilliseconds && !p.HasExited)
+                {
+                    Thread.Sleep(1000);
+                }
+                var cleanExit = p.HasExited;
+                if (!cleanExit)
+                {
+                    Console.WriteLine("Killing {0}", pid);
+                    p.Kill();
+                }
+                Console.WriteLine("Finished waiting for {0} at {1}, clean exit: {2}", pid, DateTimeOffset.Now, cleanExit);
             }
-            var cleanExit = p.HasExited;
-            if (!cleanExit)
-            {
-                Console.WriteLine("Killing {0}", pid);
-                p.Kill();
-            }
-            Console.WriteLine($"Finished waiting for {pid} at {DateTimeOffset.Now}, clean exit: {cleanExit}");
-          
             var resultPath = Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA"), "Packages", appUserModelId.Substring(0, appUserModelId.IndexOf('!')), "LocalState", "testResults.xml");
             var logsPath = Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA"), "Packages", appUserModelId.Substring(0, appUserModelId.IndexOf('!')), "LocalState", "logs.txt");
-                
-            
+
             var destinationPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(resultPath));
             var logsDestinationPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(logsPath));
             if (File.Exists(resultPath))
@@ -165,7 +173,7 @@ namespace Xunit.UwpClient
             }
             else
             {
-                Console.WriteLine("No results found at  {logsPath}, copying logs ");
+                Console.WriteLine("No results found at {0}", resultPath);
             }
             if (File.Exists(logsPath))
             {
@@ -176,11 +184,16 @@ namespace Xunit.UwpClient
             {
                 Console.WriteLine($"No logs found at  {logsPath} ");
             }
-            Console.WriteLine("Cleaning up...");
-            File.Delete(resultPath);
-            File.Delete(logsPath);
 
-            return ReturnCode;
+            Console.WriteLine("Cleaning up...");
+            if (File.Exists(resultPath))
+            {
+                File.Delete(resultPath);
+            }
+            if (File.Exists(logsPath))
+            {
+                File.Delete(logsPath);
+            }
         }
 
         private void PrintLogResults(string destinationPath)
