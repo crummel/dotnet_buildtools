@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
-using Windows.Foundation;
 using Windows.Management.Deployment;
 
 namespace Xunit.UwpClient
@@ -118,7 +117,7 @@ namespace Xunit.UwpClient
         private static void RegisterAppx(Uri manifestUri)
         {
             var packageManager = new PackageManager();
-            var result = packageManager.RegisterPackageAsync(manifestUri, null, DeploymentOptions.ForceApplicationShutdown);
+            var result = packageManager.RegisterPackageAsync(manifestUri, null, DeploymentOptions.DevelopmentMode);
             var completed = new AutoResetEvent(false);
             result.Completed = (waitResult, status) => completed.Set();
             completed.WaitOne();
@@ -158,31 +157,32 @@ namespace Xunit.UwpClient
                     Console.WriteLine("Killing {0}", pid);
                     p.Kill();
                 }
-                Console.WriteLine("Finished waiting for {0} at {1}, clean exit: {2}", pid, DateTimeOffset.Now, cleanExit);
+                Console.WriteLine($"Finished waiting for {pid} at {DateTimeOffset.Now}, clean exit: {cleanExit}");
             }
+          
             var resultPath = Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA"), "Packages", appUserModelId.Substring(0, appUserModelId.IndexOf('!')), "LocalState", "testResults.xml");
             var logsPath = Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA"), "Packages", appUserModelId.Substring(0, appUserModelId.IndexOf('!')), "LocalState", "logs.txt");
 
-            var destinationPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(resultPath));
-            var logsDestinationPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(logsPath));
+            var destinationResultPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(resultPath));
+            var destinationLogsPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(logsPath));
             if (File.Exists(resultPath))
             {
                 Console.WriteLine($"Copying {resultPath} to test directory");
-                File.Copy(resultPath, destinationPath, true);
-                PrintTestResults(destinationPath);
+                File.Copy(resultPath, destinationResultPath, true);
+                PrintTestResults(destinationResultPath);
             }
             else
             {
-                Console.WriteLine("No results found at {0}", resultPath);
+                Console.WriteLine($"No results found at {resultPath}"); 
             }
             if (File.Exists(logsPath))
             {
-                File.Copy(logsPath, logsDestinationPath, true);
-                PrintLogResults(logsDestinationPath);
+                File.Copy(logsPath, destinationLogsPath, true);
+                PrintLogResults(destinationLogsPath);
             }
             else
             {
-                Console.WriteLine($"No logs found at  {logsPath} ");
+                Console.WriteLine($"No logs found at {logsPath}");
             }
 
             Console.WriteLine("Cleaning up...");
@@ -194,6 +194,7 @@ namespace Xunit.UwpClient
             {
                 File.Delete(logsPath);
             }
+            return ReturnCode;
         }
 
         private void PrintLogResults(string destinationPath)
