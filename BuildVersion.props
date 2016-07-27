@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This is a generated file. VersionSeedData was produced by taking the timestamp of the last git commit. Seed Date is 2016-07-22. -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<PropertyGroup>
+<BuildNumberMajor Condition="'$(BuildNumberMajor)'==''">00622</BuildNumberMajor>
+<BuildNumberMinor Condition="'$(BuildNumberMinor)'==''">0</BuildNumberMinor>
+</PropertyGroup>
+</Project>
