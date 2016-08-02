@@ -20,6 +20,8 @@
     <PackageCertificateKeyFile>XunitUwpRunner_TemporaryKey.pfx</PackageCertificateKeyFile>
     <CLSCompliant>False</CLSCompliant>
     <AppxPackageDir>$(BinDir)\AppPackages</AppxPackageDir>
+	<PrereleaseResolveNuGetPackages>false</PrereleaseResolveNuGetPackages>
+	<AllowBuiltInNugetRestore>true</AllowBuiltInNugetRestore>
   </PropertyGroup>
   <ItemGroup>
     <None Include="project.json" />
