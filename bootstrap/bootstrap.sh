@@ -142,9 +142,11 @@ fi
 if [ $symlinkPath = "<auto>" ]; then
     symlinkPath="$toolsLocalPath/dotnetcli/shared/Microsoft.NETCore.App/version"
 fi
-
+echo "repoRoot: $repoRoot"
 rootToolVersions="$repoRoot/.toolversions"
 bootstrapComplete="$toolsLocalPath/bootstrap.complete"
+echo "rootToolVersions: $rootToolVersions"
+echo "bootstrapComplete: $bootstrapComplete"
 
 # if the force switch is specified delete the semaphore file if it exists
 if [[ $force && -f $bootstrapComplete ]]; then
