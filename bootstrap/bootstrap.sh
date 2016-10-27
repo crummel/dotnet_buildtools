@@ -202,6 +202,7 @@ junctionTarget="$runtimesPath/$sharedFxVersion"
 junctionParent="$(dirname "$symlinkPath")"
 echo "junctionTarget: $junctionTarget"
 echo "junctionParent: $junctionParent"
+echo "symlinkPath: $symlinkPath"
 
 if [ ! -d $junctionParent ]; then
     mkdir -p $junctionParent
@@ -210,24 +211,28 @@ fi
 if [ ! -e $symlinkPath ]; then
     ln -s $junctionTarget $symlinkPath
 fi
-
+echo "symlink done"
 # create a project.json for the packages to restore
 projectJson="$toolsLocalPath/project.json"
+echo "projectJson: $projectJson"
 pjContent="{ \"dependencies\": {"
 while read v; do
     IFS='=' read -r -a line <<< "$v"
     pjContent="$pjContent \"${line[0]}\": \"${line[1]}\","
 done <$rootToolVersions
 pjContent="$pjContent }, \"frameworks\": { \"netcoreapp1.0\": { } } }"
+echo "pjContent: $pjContent"
 echo $pjContent > $projectJson
 
 # now restore the packages
 buildToolsSource="${BUILDTOOLS_SOURCE:-https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json}"
 nugetOrgSource="https://api.nuget.org/v3/index.json"
+echo "buildToolsSource: $buildToolsSource"
+echo "nugetOrgSource: $nugetOrgSource"
 
 packagesPath="$repoRoot/packages"
 dotNetExe="$cliLocalPath/dotnet"
-restoreArgs="restore $projectJson --packages $packagesPath --source $buildToolsSource --source $nugetOrgSource"
+restoreArgs="restore $projectJson --packages $packagesPath --source $buildToolsSource --source $nugetOrgSource --verbosity debug"
 say_verbose "Running $dotNetExe $restoreArgs"
 $dotNetExe $restoreArgs
 if [ $? != 0 ]; then
